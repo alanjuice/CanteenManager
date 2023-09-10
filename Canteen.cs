@@ -101,6 +101,7 @@ namespace CanteenLogic
 
             while (stillBrowsing)
             {
+                
                 var items = getItems();
 
                 var menu = new ConsoleTable("ID", "NAME", "QUANTITY", "PRICE");
@@ -115,29 +116,57 @@ namespace CanteenLogic
                 if (food_id.ToLower() == "e")
                 {
                     stillBrowsing = false;
+                    Console.WriteLine("You have ordered \n");
+                    var orderMenu = new ConsoleTable("Name", "Quantity");
+                    foreach (var item in orders)
+                    {
+                        orderMenu.AddRow(item.Item1, item.Item2);
+                    }
+                    orderMenu.Write(Format.Minimal);
                     continue;
                 }
 
+                Boolean itemFound = false;
+
                 foreach (var item in items)
                 {
+
                     if (item[0] == food_id)
                     {
+                        itemFound = true;
                         Console.WriteLine($"How many {item[1]} would you like to order");
-
                         int quantity = Convert.ToInt32(Console.ReadLine());
-                        if (Convert.ToInt32(item[2]) >= quantity)
+                        try
                         {
-                            orders.Add((item[0], quantity));
-                            updateDb($"update items set quantity=quantity-{quantity} where item_id='{food_id}'");
-                            Console.WriteLine("Ordered Successfully");
+                            if (Convert.ToInt32(item[2]) >= quantity)
+                            {
+                                orders.Add((item[1], quantity));
+                                updateDb($"update items set quantity=quantity-{quantity} where item_id='{food_id}'");
+                                Console.WriteLine("Ordered Successfully");
+
+                            }
+                            else
+                            {
+                                Console.WriteLine("Sorry, We dont have that much available");
+                            }
                         }
-                        else
+                        catch (System.FormatException)
                         {
-                            Console.WriteLine("Sorry, We dont have that much available");
+                            Console.WriteLine("Please input an integer value for quantity");
+                            return;
                         }
+
+                        
+                        
                         break;
                     }
                 }
+
+                if (!itemFound)
+                {
+                    Console.WriteLine("Invaid Product ID");
+                }
+
             }
 
         }
@@ -177,15 +206,31 @@ namespace CanteenLogic
             //Add more items to the stocks
             //Increase the quantity of existing item in database
 
+
             Console.WriteLine("Enter the PID you want to update:");
             string pid = Console.ReadLine();
             Console.WriteLine("Enter the quantity you want to add:");
-            int quantity = Convert.ToInt32(Console.ReadLine());
 
-            updateDb($"update items set quantity = quantity+{quantity} where item_id='{pid}'");
+            try
+            {
+                int quantity = Convert.ToInt32(Console.ReadLine());
+                int value = updateDb($"update items set quantity = quantity+{quantity} where item_id='{pid}'");
+                if (value == 0)
+                {
+                    Console.WriteLine("Invalid Product ID");
+                }
+            }
+            catch (System.FormatException)
+            {
+                Console.WriteLine("Please input an integer value for quantity");
+                return;
+            }
+            
+            //No database change when invalid/unexisting PID is given
+            
         }
 
-        void updateDb(string query)
+        int updateDb(string query)
         {
             //Method to make update queries to the database
 
@@ -194,8 +239,10 @@ namespace CanteenLogic
                 connection.Open();
                 SqliteCommand command = connection.CreateCommand();
                 command.CommandText = query;
-                command.ExecuteNonQuery();
+                int noOfRowsUpdated = command.ExecuteNonQuery();
                 connection.Close();
+                return noOfRowsUpdated;
+
             }
         }
     }
