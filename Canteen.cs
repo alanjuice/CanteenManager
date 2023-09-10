@@ -96,7 +96,7 @@ namespace CanteenLogic
             //Accepts orders from user
 
             bool stillBrowsing = true;
-            List<(string, int)> orders = new List<(string, int)>();
+            List<(string, int, float)> orders = new List<(string, int, float)>();
 
 
             while (stillBrowsing)
@@ -115,14 +115,17 @@ namespace CanteenLogic
 
                 if (food_id.ToLower() == "e")
                 {
+                    float totalAmount = 0;
                     stillBrowsing = false;
-                    Console.WriteLine("You have ordered \n");
-                    var orderMenu = new ConsoleTable("Name", "Quantity");
+                    Console.WriteLine("Bill \n\n");
+                    var orderMenu = new ConsoleTable("Name", "Quantity","Total Price");
                     foreach (var item in orders)
-                    {
-                        orderMenu.AddRow(item.Item1, item.Item2);
+                    {                       
+                        orderMenu.AddRow(item.Item1, item.Item2, item.Item2*item.Item3);
+                        totalAmount += item.Item2 * item.Item3;
                     }
                     orderMenu.Write(Format.Minimal);
+                    Console.WriteLine($"\nTotal Amount : {totalAmount}");
                     continue;
                 }
 
@@ -140,7 +143,7 @@ namespace CanteenLogic
                         {
                             if (Convert.ToInt32(item[2]) >= quantity)
                             {
-                                orders.Add((item[1], quantity));
+                                orders.Add((item[1], quantity, float.Parse(item[3])));
                                 updateDb($"update items set quantity=quantity-{quantity} where item_id='{food_id}'");
                                 Console.WriteLine("Ordered Successfully");
 
