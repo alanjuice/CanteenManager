@@ -5,15 +5,6 @@ namespace CanteenLogic
 {
     class Canteen
     {
-        //TODO
-
-        //2. Create a better order menu - Multi Item Buying & Bill Generation
-        //3. Make database updates at the end of order instead of after each product so that user can cancel
-        //   in between an order and no change is reflected on the database
-        //4. Make a cart system
-        //5. Make GUI with WPF
-        //6. 
-
         static string connectionString = "Data Source=store.db";
 
         public void StartMenu()
@@ -27,7 +18,8 @@ namespace CanteenLogic
                 1.Make an order
                 2.Add new item
                 3.Add stocks
-                4.Exit
+                4.Delete a item
+                5.Exit
                 Enter the choice ");
                 string input = Console.ReadLine();
                 switch (input)
@@ -42,6 +34,9 @@ namespace CanteenLogic
                         addStocks();
                         break;
                     case "4":
+                        deleteItem();
+                        break;
+                    case "5":
                         running = false;
                         break;
                     default:
@@ -57,6 +52,18 @@ namespace CanteenLogic
         {
             //Creates the database if not exists
             updateDb("create table if not exists items(item_id char(2) primary key,name varchar(20), quantity int, price float)");
+        }
+
+        void deleteItem()
+        {
+            Console.WriteLine("Enter the Item Id you want to delete");
+            string id = Console.ReadLine();
+            int value = updateDb($"delete from items where item_id='{id}'");
+            if (value == 0)
+                Console.WriteLine("Invalid Product ID");
+            else
+                Console.WriteLine("Deleted Successfully");
+
         }
 
 
