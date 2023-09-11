@@ -7,7 +7,6 @@ namespace CanteenLogic
     {
         //TODO
 
-        //1. Add exception handling to database operations
         //2. Create a better order menu - Multi Item Buying & Bill Generation
         //3. Make database updates at the end of order instead of after each product so that user can cancel
         //   in between an order and no change is reflected on the database
@@ -74,17 +73,25 @@ namespace CanteenLogic
                 Console.WriteLine("Enter the item name:");
                 string name = Console.ReadLine();
                 Console.WriteLine("Enter the quantity:");
-                int quantity = Convert.ToInt32(Console.ReadLine());
-                Console.WriteLine("Enter the price of one item:");
-                int price = Convert.ToInt32(Console.ReadLine());
-                string query = $"insert into items values('{item_id}','{name}',{quantity},{price})";
+                try
+                {
+                    int quantity = Convert.ToInt32(Console.ReadLine());
+                    Console.WriteLine("Enter the price of one item:");
+                    int price = Convert.ToInt32(Console.ReadLine());
+                    string query = $"insert into items values('{item_id}','{name}',{quantity},{price})";
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = query;
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                    Console.WriteLine("Item added successfully");
+                }
+                catch (System.FormatException)
+                {
+                    Console.WriteLine("Please input an integer value for quantity");
+                    return;
+                }
 
-                connection.Open();
-                SqliteCommand command = connection.CreateCommand();
-                command.CommandText = query;
-                command.ExecuteNonQuery();
-                connection.Close();
-                Console.WriteLine("Item added successfully");
             }
         }
 
@@ -124,8 +131,9 @@ namespace CanteenLogic
                         orderMenu.AddRow(item.Item1, item.Item2, item.Item2*item.Item3);
                         totalAmount += item.Item2 * item.Item3;
                     }
+                    orderMenu.AddRow("","","");
+                    orderMenu.AddRow("Total Amount","", totalAmount);
                     orderMenu.Write(Format.Minimal);
-                    Console.WriteLine($"\nTotal Amount : {totalAmount}");
                     continue;
                 }
 
